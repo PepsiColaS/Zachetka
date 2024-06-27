@@ -26,7 +26,8 @@ app.post("/signup", async (req, res) => {
 
     const data = {
         name: req.body.username,
-        password: req.body.password
+        password: req.body.password,
+        role: 1
     }
 
     // Check if the username already exists in the database
@@ -35,11 +36,11 @@ app.post("/signup", async (req, res) => {
     if (existingUser) {
         res.send('User already exists. Please choose a different username.');
     } else {
-        // Hash the password using bcrypt
-        const saltRounds = 10; // Number of salt rounds for bcrypt
-        const hashedPassword = await bcrypt.hash(data.password, saltRounds);
+        // // Hash the password using bcrypt
+        // const saltRounds = 10; // Number of salt rounds for bcrypt
+        // const hashedPassword = await bcrypt.hash(data.password, saltRounds);
 
-        data.password = hashedPassword; // Replace the original password with the hashed one
+        // data.password = hashedPassword; // Replace the original password with the hashed one
 
         const userdata = await collection.insertMany(data);
         console.log(userdata);
@@ -55,12 +56,12 @@ app.post("/login", async (req, res) => {
             res.send("User name cannot found")
         }
         // Compare the hashed password from the database with the plaintext password
-        const isPasswordMatch = await bcrypt.compare(req.body.password, check.password);
+        const isPasswordMatch = await (req.body.password == check.password);
         if (!isPasswordMatch) {
             res.send("wrong Password");
         }
-        else {
-            res.render("home");
+        else { 
+             res.render("home")          
         }
     }
     catch {
