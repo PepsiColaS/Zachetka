@@ -17,6 +17,11 @@ app.get("/", (req, res) => {
     res.render("login");
 });
 
+app.get("/teacher", (req, res) => {
+    res.render("teacher");
+});
+
+
 app.get("/signup", (req, res) => {
     res.render("signup");
 });
@@ -30,20 +35,15 @@ app.post("/signup", async (req, res) => {
         role: 1
     }
 
-    // Check if the username already exists in the database
     const existingUser = await collection.findOne({ name: data.name });
 
     if (existingUser) {
         res.send('User already exists. Please choose a different username.');
     } else {
-        // // Hash the password using bcrypt
-        // const saltRounds = 10; // Number of salt rounds for bcrypt
-        // const hashedPassword = await bcrypt.hash(data.password, saltRounds);
-
-        // data.password = hashedPassword; // Replace the original password with the hashed one
 
         const userdata = await collection.insertMany(data);
-        console.log(userdata);
+        res.render('login')
+        // console.log(userdata);
     }
 
 });
@@ -55,13 +55,17 @@ app.post("/login", async (req, res) => {
         if (!check) {
             res.send("User name cannot found")
         }
-        // Compare the hashed password from the database with the plaintext password
         const isPasswordMatch = await (req.body.password == check.password);
         if (!isPasswordMatch) {
             res.send("wrong Password");
         }
         else { 
-             res.render("home")          
+             if (check.role == '1'){
+                res.render('home')
+             }
+             else{
+                res.render('teacher');
+             }
         }
     }
     catch {
@@ -70,8 +74,30 @@ app.post("/login", async (req, res) => {
 });
 
 
+app.post("/teacher", async (req, res) => {
+
+    const data = {
+        TeacherName: req.body.username,
+        Title: req.body.password,
+        students: 1
+    }
+
+    const existingUser = await collection.findOne({ name: data.name });
+
+    if (existingUser) {
+        res.send('User already exists. Please choose a different username.');
+    } else {
+
+        const userdata = await collection.insertMany(data);
+        res.render('login')
+        // console.log(userdata);
+    }
+
+});
+
 // Define Port for Application
 const port = 5000;
 app.listen(port, () => {
     console.log(`Server listening on port ${port}`)
 });
+
