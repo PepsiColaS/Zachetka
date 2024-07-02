@@ -1,17 +1,45 @@
+const mongoose = require('mongoose');
+const connect = mongoose.connect("mongodb://localhost:27017/Zachetka");
+const bodyParser = require('body-parser');
+
 const express = require("express");
 const path = require("path");
 const collection = require("./config");
-const bcrypt = require('bcrypt');
 
 const app = express();
+
+app.use(bodyParser.json());
+
+
+const { Schema } = mongoose;
+const textSchema = new Schema({
+  text: String
+});
+const TextModel = mongoose.model('courses', textSchema);
+
+
 // convert data into json format
 app.use(express.json());
 // Static file
 app.use(express.static("public"));
 
-app.use(express.urlencoded({ extended: false }));
+app.use(express.urlencoded({ extended: true }));
 //use EJS as the view engine
 app.set("view engine", "ejs");
+
+
+
+// Маршрут для получения данных
+app.get('/home', async (req, res) => {
+    try {
+      const data = await TextModel.find(); // Замените YourModel на ваш Mongoose model
+      res.send(data);
+    } catch (err) {
+      res.status(500).send(err.message);
+    }
+    
+  });
+
 
 app.get("/", (req, res) => {
     res.render("login");
@@ -21,6 +49,9 @@ app.get("/teacher", (req, res) => {
     res.render("teacher");
 });
 
+app.get("/create-course", (req, res) => {
+    res.render("teacher");
+});
 
 app.get("/signup", (req, res) => {
     res.render("signup");
@@ -48,6 +79,10 @@ app.post("/signup", async (req, res) => {
 
 });
 
+
+
+
+
 // Login user 
 app.post("/login", async (req, res) => {
     try {
@@ -61,10 +96,10 @@ app.post("/login", async (req, res) => {
         }
         else { 
              if (check.role == '1'){
-                res.render('home')
+                res.redirect('home')
              }
              else{
-                res.render('teacher');
+                res.redirect('teacher');
              }
         }
     }
@@ -74,29 +109,20 @@ app.post("/login", async (req, res) => {
 });
 
 
-app.post("/teacher", async (req, res) => {
-
-    const data = {
-        TeacherName: req.body.username,
-        Title: req.body.password,
-        students: 1
-    }
-
-    const existingUser = await collection.findOne({ name: data.name });
-
-    if (existingUser) {
-        res.send('User already exists. Please choose a different username.');
-    } else {
-
-        const userdata = await collection.insertMany(data);
-        res.render('login')
-        // console.log(userdata);
-    }
-
+app.get('/', (req, res) => {
+    res.sendFile(__dirname + '/index.html');
+  });
+  
+app.post('/addText', async (req, res) => {
+        const data = {
+            text: req.body.text
+        }
+        const userdata = await TextModel.insertMany(data);
+        res.redirect('teacher')
 });
 
 // Define Port for Application
-const port = 5000;
+const port = 3000;
 app.listen(port, () => {
     console.log(`Server listening on port ${port}`)
 });
