@@ -8,26 +8,10 @@
 </head>
 <body>
     <div class="course">
-        <h1>Название курса: <div id='data-container'></div></h1>
+        <h1>Название курса: <div id='data-container' name="data-container"></div></h1>
         <H2>ФИО преподавателя: Беднякова Татьяна Михайловна</H2>
         <button>Список студентов</button>
     </div>
 
-
-    <script>
-        console.log('fgfggf')
-        fetch('/home')
-         .then(response => response.json())
-         .then(data => {
-              let container = document.getElementById('data-container');
-              data.forEach(item => {
-                  let div = document.createElement('div');
-                  div.textContent = item.text; // Замените someField на имя поля, которое вы хотите отобразить
-                  container.appendChild(div);
-              });
-            console.log('fgfg')
-          })
-         .catch(error => console.error('Error:', error));
-    </script>
 </body>
 </html>
