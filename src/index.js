@@ -14,7 +14,8 @@ app.use(bodyParser.json());
 const { Schema } = mongoose;
 const textSchema = new Schema({
     text: String,
-    students: []
+    students: [],
+    teacherName: String
 });
 const TextModel = mongoose.model('courses', textSchema);
 
@@ -32,32 +33,80 @@ app.set("view engine", "ejs");
 app.get('/home', async (req, res) => {
     try {
         let data = await TextModel.find().lean();
-        let htmlOutput = '';
-        data.forEach(item => {
-            let isSub = false
-            item.students.forEach(item2 => {
-                if (item2.toString() === studId.toString()) { // Используем строгое сравнение
-                    htmlOutput += 
-                        `<form action="/unSub/${item._id}" method="post">
-                            <input type="hidden" name="courseId" value="${item._id}">
-                            <h1>Название курса: ${item.text}</h1>
-                            <h2>Имя преподавателя: Беднякова Татьяна Михайловна</h2> 
-                            <button>Отписаться</button>
-                        </form>`;
-                    isSub = true
+        let htmlOutput = `
+        <html>
+        <head>
+            <style>
+                body {
+                    font-family: Arial, sans-serif;
+                    background-color: #f4f4f4;
+                    margin: 0;
+                    padding: 0;
                 }
-            }
-        );
-        if (!isSub){
-            htmlOutput +=
-                        `<form action="/enroll/${item._id}" method="post">
+                .course {
+                    border: 1px solid #ccc;
+                    padding: 10px;
+                    margin-bottom: 10px;
+                    background-color: #f9f9f9;
+                }
+                h1 {
+                    color: #333;
+                    font-size: 20px;
+                    margin-bottom: 5px;
+                }
+                h2 {
+                    color: #666;
+                    font-size: 16px;
+                    margin-bottom: 10px;
+                }
+                button {
+                    background-color: #4caf50;
+                    color: #fff;
+                    padding: 8px 15px;
+                    border: none;
+                    border-radius: 3px;
+                    cursor: pointer;
+                }
+                button:hover {
+                    background-color: #45a049;
+                }
+                input[type="hidden"] {
+                    display: none;
+                }
+            </style>
+        </head>
+        <body>
+        `;
+        data.forEach(item => {
+            let isSub = false;
+            item.students.forEach(item2 => {
+                if (item2.toString() === studId.toString()) {
+                    htmlOutput += `
+                    <div class="course">
+                        <form action="/unSub/${item._id}" method="post">
                             <input type="hidden" name="courseId" value="${item._id}">
                             <h1>Название курса: ${item.text}</h1>
-                            <h2>Имя преподавателя: Беднякова Татьяна Михайловна</h2> 
-                            <button type="submit">Записаться на курс</button>
-                        </form>`;
-        }
+                            <h2>Имя преподавателя:  ${item.teacherName}</h2> 
+                            <button>Отписаться</button>
+                        </form>
+                    </div>`;
+                    isSub = true;
+                }
+            });
+            if (!isSub) {
+                htmlOutput += `
+                <div class="course">
+                    <form action="/enroll/${item._id}" method="post">
+                        <input type="hidden" name="courseId" value="${item._id}">
+                        <h1>Название курса: ${item.text}</h1>
+                        <h2>Имя преподавателя:  ${item.teacherName}</h2> 
+                        <button type="submit">Записаться на курс</button>
+                    </form>
+                </div>
+                `;
+            }
         });
+        htmlOutput += `</body></html>`;
         res.send(htmlOutput);
     } catch (err) {
         res.status(500).send(err.message);
@@ -102,27 +151,115 @@ app.post('/unSub/:id', async (req, res) => {
 // Отрисовка формы учителя 
 app.get('/teacher', async (req, res) => {
     try {
-        let data = await TextModel.find().lean();
-        let htmlOutput = '';
-        data.forEach(item => {
-            htmlOutput +=
-                `<form action="/bigmak/${item._id}" method="post">
-                    <h1>Название курса: ${item.text}</h1>
-                    <h2>Имя преподавателя: Беднякова Татьяна Михайловна</h2>
-                    <button id="${item._id}">Список студентов</button>
-                </form>
-                `;
-        });
-        htmlOutput += `<form action="/addText" method="POST">
-        <input type="text" name="text" placeholder="Введите текст">
-        <button type="submit">Добавить текст</button>
-        </form>`
+        let htmlOutput = `
+        <html>
+        <head>
+            <style>
+                body {
+                    font-family: Arial, sans-serif;
+                    background-color: #f4f4f4;
+                    margin: 0;
+                    padding: 0;
+                }
+                .container {
+                    max-width: 800px;
+                    margin: 20px auto;
+                    padding: 20px;
+                    background-color: #fff;
+                    border-radius: 5px;
+                    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+                }
+                .course {
+                    border: 1px solid #ccc;
+                    padding: 10px;
+                    margin-bottom: 10px;
+                    background-color: #f9f9f9;
+                }
+                h1 {
+                    color: #333;
+                    font-size: 20px;
+                    margin-bottom: 5px;
+                }
+                h2 {
+                    color: #666;
+                    font-size: 16px;
+                    margin-bottom: 10px;
+                }
+                button {
+                    background-color: #00bfff;
+                    color: #fff;
+                    padding: 8px 15px;
+                    border: none;
+                    border-radius: 3px;
+                    cursor: pointer;
+                }
+                button:hover {
+                    background-color: #45a049;
+                }
+                input[type="text"] {
+                    width: 100%;
+                    padding: 10px;
+                    border-radius: 3px;
+                    border: 1px solid #ccc;
+                    box-sizing: border-box;
+                    margin-bottom: 10px;
+                }
+            </style>
+        </head>
+        <body>
+            <div class="container">
+        `;
+        let courses = await TextModel.find().lean();
+
+        // Шаг 2: Для каждого курса получаем имена студентов
+        for (const course of courses) {
+            const studentNames = await collection.find({ _id: { $in: course.students } }).lean();
+    // Добавляем информацию о курсе и студентах в htmlOutput
+    htmlOutput += `
+        <div class="course">
+            <form action="/bigmak/${course._id}" method="post">
+                <h1>Курс: ${course.text}</h1>
+                <h2>Преподаватель: ${course.teacherName}</h2>
+                <p>Студенты:</p>
+                <ul>
+                    ${studentNames.map(userr => `<li>${userr.name}</li>`).join('')}
+                </ul>
+            </form>
+        </div>
+    `;
+}
+        htmlOutput += `
+            <form action="/addText" method="POST">
+                <input type="text" name="text" placeholder="Введите название курса">
+                <button type="submit">Добавить курс</button>
+            </form>
+            </div>
+            </body>
+            </html>
+        `;
 
         res.send(htmlOutput);
     } catch (err) {
         res.status(500).send(err.message);
     }
+});
 
+//Добавление курса
+app.post('/addText', async (req, res) => {
+    const teacher = await collection.findOne({ _id: studId });
+    console.log(teacher)
+
+    const data = {
+        text: req.body.text,
+        teacherName: teacher.name
+    }
+    try {
+        const result = await TextModel.create(data); // Используйте create для добавления нового документа
+        res.redirect('teacher'); // Перенаправление после успешного сохранения
+    } catch (error) {
+        console.error(error); // Логируйте ошибки для диагностики
+        res.status(500).send('Ошибка при добавлении текста');
+    }
 });
 
 
@@ -138,8 +275,9 @@ app.post('/bigmak/:id', async (req, res) => {
             liststudents.push(student.name);
         };
 
-        console.log(liststudents);
-
+        // console.log(liststudents);
+       
+        res.json({ success: true, students: liststudents });
         // res.redirect('teacher');
     } catch (error) {
         console.error(error);
@@ -196,6 +334,7 @@ app.post("/login", async (req, res) => {
             res.send("wrong Password");
         }
         else {
+            studId = check._id
             if (check.role == '1') {
                 studId = check._id
                 res.redirect('home')
@@ -211,13 +350,6 @@ app.post("/login", async (req, res) => {
     }
 });
 
-app.post('/addText', async (req, res) => {
-    const data = {
-        text: req.body.text
-    }
-    const userdata = await TextModel.insertMany(data);
-    res.redirect('teacher')
-});
 
 // Define Port for Application
 const port = 3000;
